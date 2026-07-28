@@ -114,7 +114,10 @@ if submit_btn and user_input:
         cursor = db.cursor()
         
         # Ensure the 'category' column exists
-        cursor.execute("ALTER TABLE reviews ADD COLUMN IF NOT EXISTS category VARCHAR(100);")
+        # Ensure the 'category' column exists (MySQL workaround for IF NOT EXISTS)
+        cursor.execute("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='reviews' AND column_name='category'")
+        if cursor.fetchone()[0] == 0:
+            cursor.execute("ALTER TABLE reviews ADD COLUMN category VARCHAR(100)")
         
         sql = """
             INSERT INTO reviews (date_received, raw_text, ai_sentiment, ai_confidence, category)
